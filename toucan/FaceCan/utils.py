@@ -8,6 +8,7 @@ from PIL import Image
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from .Tracker import Tracker
+from tqdm import tqdm
 
 def create_anchors(anchor_sizes: list, aspect_ratios: list):
     anchors = []
@@ -62,37 +63,47 @@ def detection_loss(pred_bboxes, true_bboxes, cls_scores, cls_truths):
 
 class DetectionDataset(Dataset):
 
-    def __init__(self, images, labels, class_scores, transform):
-
+    def __init__(self, images, bboxes, labels, transform):
         '''
         Params:
-        images: The images for it
-        labels: The labels for it
-        transform: The transforms for it. MUST contain a T.ToTensor() in the transform.Compose([])
+        images: List of image file paths
+        bboxes: List of lists of bounding boxes [[xmin, ymin, xmax, ymax], ...] per image
+        labels: List of lists of class labels per image (one per bbox)
+        class_scores: List of scores (optional, e.g., image-level or for active learning)
+        transform: Albumentations transform with bbox_params set
         '''
-
         self.images = images
+        self.bboxes = bboxes
         self.labels = labels 
-        self.class_scores = class_scores
         self.transform = transform
-    
 
     def __getitem__(self, idx):
-        img = self.images[idx]
-        lbl = self.labels[idx]
-        score = self.class_scores[idx]
+        img = Image.open(self.images[idx]).convert("L")  # Use RGB for 3-channel input
+        img = np.array(img)
 
-        img = Image.open(img).convert("L")
+        bboxes = self.bboxes[idx]
+        labels = self.labels[idx]
 
-        img = self.transform(img)
+        if self.transform:
+            transformed = self.transform(image=img, bboxes=bboxes, labels=labels)
+            img = transformed["image"]
+            bboxes = transformed["bboxes"]
+            labels = transformed["labels"]
 
-        return img, lbl, score
-
+        return (
+            img,
+            torch.tensor(bboxes, dtype=torch.float32),
+            torch.tensor(labels, dtype=torch.long)
+        )
 
     def __len__(self):
         return len(self.images)
+
+
     
-detection_transforms = A.Compose([
+def detection_transforms (): 
+            
+            transforms = A.Compose([
             A.HorizontalFlip(p=0.5),
             A.RandomBrightnessContrast(p=0.2),
             A.HueSaturationValue(p=0.1),
@@ -105,6 +116,7 @@ detection_transforms = A.Compose([
             min_visibility=0.3,
             label_fields=['labels']
         ))
+            return transforms
 
 def detection_training(epochs, model, train_dl, val_dl, optimizer=None, lr=3e-3, device=None, tracking_path="progress.json"):
 
@@ -117,12 +129,12 @@ def detection_training(epochs, model, train_dl, val_dl, optimizer=None, lr=3e-3,
     device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs), desc="Epochs: "):
         model.train()
         avg_t_loss = 0
         count = 0
         
-        for imgs, lbls, clss in train_dl:
+        for imgs, lbls, clss in tqdm(train_dl, desc="Epoch Progress: ", leave=False):
             imgs = imgs.to(device)
             lbls = lbls.to(device)
             clss = clss.to(device)

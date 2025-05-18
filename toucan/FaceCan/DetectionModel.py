@@ -52,9 +52,9 @@ class MiddleBlock(nn.Module):
         h = F.pad(x, (0, 2, 0, 2), "constant", 0)
         return self.act(self.convs(h))
 
-class DetectionCan(nn.Module):
+class Detection(nn.Module):
     def __init__(self, img_size=(256, 256), num_classes=2):
-        super(DetectionCan, self).__init__()
+        super(Detection, self).__init__()
         self.img_size = img_size
         self.num_classes = num_classes
         
