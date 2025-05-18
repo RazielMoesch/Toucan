@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 from PIL import Image
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from Tracker import Tracker
+from .Tracker import Tracker
 
 def create_anchors(anchor_sizes: list, aspect_ratios: list):
     anchors = []

@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from utils import create_anchors, generate_anchors, compute_iou
+from .utils import create_anchors, generate_anchors, compute_iou
 
 
 
@@ -52,9 +52,9 @@ class MiddleBlock(nn.Module):
         h = F.pad(x, (0, 2, 0, 2), "constant", 0)
         return self.act(self.convs(h))
 
-class CanDetect(nn.Module):
+class DetectionCan(nn.Module):
     def __init__(self, img_size=(256, 256), num_classes=2):
-        super(CanDetect, self).__init__()
+        super(DetectionCan, self).__init__()
         self.img_size = img_size
         self.num_classes = num_classes
         
@@ -140,3 +140,6 @@ class CanDetect(nn.Module):
         cls_scores = torch.cat(cls_scores, dim=1) 
         box_offsets = torch.cat(box_offsets, dim=1)  
         return cls_scores, box_offsets
+    
+
+    
