@@ -1,0 +1,28 @@
+# Build and distribution directories
+/build/
+/dist/
+/the_toucan.egg-info/
+the_toucan.egg-info/PKG-INFO
+the_toucan.egg-info/SOURCES.txt
+the_toucan.egg-info/dependency_links.txt
+the_toucan.egg-info/requires.txt
+the_toucan.egg-info/top_level.txt
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# IDE and OS files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment files
+.env
+.venv/
+venv/
+
+# Specific files to ignore
+/setup.py

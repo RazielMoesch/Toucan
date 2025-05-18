@@ -107,6 +107,7 @@ detection_transforms = A.Compose([
         ))
 
 def detection_training(epochs, model, train_dl, val_dl, optimizer=None, lr=3e-3, device=None, tracking_path="progress.json"):
+
     if tracking_path:
         tracker = Tracker(tracking_path)
 
@@ -170,3 +171,15 @@ def detection_training(epochs, model, train_dl, val_dl, optimizer=None, lr=3e-3,
             tracker.save_metrics(tracking_path)
 
     return model
+
+
+def download_dataset(dataset_name):
+    '''
+    Current Dataset:
+
+    '''
+
+    
+
+
+
